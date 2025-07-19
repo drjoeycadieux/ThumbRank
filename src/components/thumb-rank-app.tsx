@@ -4,13 +4,24 @@ import { useState } from "react";
 import { rankThumbnailsAction } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import type { RankThumbnailsOutput } from "@/ai/flows/rank-thumbnails";
+import { useRouter } from 'next/navigation';
 
 import { ThumbnailUploader } from "@/components/thumbnail-uploader";
 import { ThumbnailCard } from "@/components/thumbnail-card";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowRight, RotateCcw } from "lucide-react";
+import { Sparkles, ArrowRight, RotateCcw, ShieldCheck } from "lucide-react";
 import Image from "next/image";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type AppState = "idle" | "preview" | "loading" | "results";
 
@@ -18,18 +29,12 @@ export default function ThumbRankApp() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [rankedThumbnails, setRankedThumbnails] = useState<RankThumbnailsOutput["rankedThumbnails"]>([]);
   const [appState, setAppState] = useState<AppState>("idle");
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleFilesSelected = (files: File[]) => {
     if (files.length === 0) return;
-    if (files.length < 2) {
-      toast({
-        variant: "destructive",
-        title: "Not enough thumbnails",
-        description: "Please upload at least two thumbnails to compare.",
-      });
-      return;
-    }
 
     const filePromises = files.map(file => {
       return new Promise<string>((resolve, reject) => {
@@ -56,10 +61,14 @@ export default function ThumbRankApp() {
   };
 
   const handleRank = async () => {
+    if (previews.length > 1) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+    
     setAppState("loading");
     try {
       const result = await rankThumbnailsAction(previews);
-      // Sort thumbnails based on rank (lower is better, but API returns highest CTR first)
       const sorted = result.rankedThumbnails;
       setRankedThumbnails(sorted);
       setAppState("results");
@@ -70,8 +79,13 @@ export default function ThumbRankApp() {
         title: "Ranking Failed",
         description: errorMessage,
       });
-      setAppState("preview"); // Go back to preview state on error
+      setAppState("preview");
     }
+  };
+  
+  const handleUpgrade = () => {
+    setShowUpgradeDialog(false);
+    router.push('/pricing');
   };
 
   const handleReset = () => {
@@ -88,7 +102,7 @@ export default function ThumbRankApp() {
         return (
           <div className="flex flex-col items-center gap-8">
             <h2 className="text-2xl font-bold text-center">Your Thumbnails</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className={`grid gap-4 md:gap-6 ${previews.length > 1 ? 'grid-cols-2 md:grid-cols-2 lg:grid-cols-2' : 'grid-cols-1'}`}>
               {previews.map((src, index) => (
                 <div key={index} className="aspect-video bg-muted rounded-lg overflow-hidden shadow-md transition-transform hover:scale-105">
                   <Image src={src} alt={`Thumbnail preview ${index + 1}`} width={320} height={180} className="w-full h-full object-cover" />
@@ -98,8 +112,8 @@ export default function ThumbRankApp() {
             <div className="flex items-center gap-4 mt-4">
               <Button size="lg" onClick={handleRank}>
                 <Sparkles className="mr-2" />
-                Rank Thumbnails
-                <ArrowRight className="ml-2" />
+                {previews.length > 1 ? 'Rank Thumbnails' : 'Analyze Thumbnail'}
+                {previews.length > 1 && <ArrowRight className="ml-2" />}
               </Button>
                <Button size="lg" variant="outline" onClick={handleReset}>
                 <RotateCcw className="mr-2" />
@@ -114,8 +128,8 @@ export default function ThumbRankApp() {
         return (
           <div className="flex flex-col items-center gap-12">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-center text-primary">Ranking Results</h2>
-              <p className="text-muted-foreground mt-2">Here's how your thumbnails stack up based on predicted click-through rate.</p>
+              <h2 className="text-3xl font-bold text-center text-primary">{previews.length > 1 ? "Ranking Results" : "Analysis Complete"}</h2>
+              <p className="text-muted-foreground mt-2">{previews.length > 1 ? "Here's how your thumbnails stack up based on predicted click-through rate." : "Here is the analysis of your thumbnail."}</p>
             </div>
             <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {rankedThumbnails.map((thumbnail, index) => (
@@ -128,7 +142,7 @@ export default function ThumbRankApp() {
             </div>
              <Button size="lg" variant="outline" onClick={handleReset}>
                 <RotateCcw className="mr-2" />
-                Rank More Thumbnails
+                {previews.length > 1 ? "Rank More Thumbnails" : "Analyze Another"}
               </Button>
           </div>
         );
@@ -137,5 +151,30 @@ export default function ThumbRankApp() {
     }
   };
 
-  return <div className="w-full">{renderContent()}</div>;
+  return (
+    <>
+      <div className="w-full">{renderContent()}</div>
+      <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+             <div className="flex justify-center">
+                <div className="bg-primary/10 rounded-full p-3">
+                    <ShieldCheck className="h-8 w-8 text-primary" />
+                </div>
+             </div>
+            <AlertDialogTitle className="text-center text-2xl">Upgrade to Rank Multiple Thumbnails</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              Our free plan allows you to analyze one thumbnail at a time. To compare and rank multiple thumbnails, please upgrade to our Pro plan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogCancel>Maybe Later</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUpgrade}>
+              View Pricing
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 }

@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import { Header } from '@/components/header';
 
 export const metadata: Metadata = {
   title: 'ThumbRank',
@@ -20,6 +21,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet"></link>
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
+        <Header />
         <div className="flex-grow">
           {children}
         </div>

@@ -1,5 +1,4 @@
 import ThumbRankApp from "@/components/thumb-rank-app";
-import { Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
