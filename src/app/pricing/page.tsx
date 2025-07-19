@@ -2,6 +2,7 @@ import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 enum Plan {
   Free = 'Free',
@@ -16,6 +17,7 @@ const plans = [
     priceDetails: '/month',
     features: ['Up to 1 thumbnail analysis', 'Basic AI feedback', 'Community support'],
     cta: 'Get Started',
+    href: '/signup',
   },
   {
     name: Plan.Pro,
@@ -29,6 +31,7 @@ const plans = [
     ],
     cta: 'Upgrade to Pro',
     popular: true,
+    href: '/signup',
   },
   {
     name: Plan.Enterprise,
@@ -42,6 +45,7 @@ const plans = [
       'Custom integrations',
     ],
     cta: 'Contact Sales',
+    href: 'mailto:joeycadieux161@gmail.com',
   },
 ];
 
@@ -90,11 +94,12 @@ export default function PricingPage() {
             </CardContent>
             <CardFooter>
               <Button
+                asChild
                 size="lg"
                 className="w-full"
                 variant={plan.popular ? 'default' : 'outline'}
               >
-                {plan.cta}
+                <Link href={plan.href}>{plan.cta}</Link>
               </Button>
             </CardFooter>
           </Card>
