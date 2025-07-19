@@ -41,7 +41,6 @@ const plans = [
       'Everything in Pro',
       'Team accounts',
       'Dedicated account manager',
-      'API access',
       'Custom integrations',
     ],
     cta: 'Contact Sales',

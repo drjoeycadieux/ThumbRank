@@ -29,7 +29,7 @@ export default function RootLayout({
           </div>
           <Toaster />
           <footer className="text-center p-4 text-muted-foreground text-sm">
-            Joey Cadieux - joeycadieux161@gmail.com
+            ThumbRank. All Right Reserved. 2025
           </footer>
         </AuthProvider>
       </body>
