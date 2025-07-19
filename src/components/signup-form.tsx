@@ -87,7 +87,7 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
            <div className="grid gap-1">
             <Label className="sr-only" htmlFor="password">
               Password
-            </dLabel>
+            </Label>
             <Input
               id="password"
               placeholder="password"
