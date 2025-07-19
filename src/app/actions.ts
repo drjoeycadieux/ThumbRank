@@ -1,7 +1,10 @@
 
 'use server';
 
-import { rankThumbnails, type RankThumbnailsOutput } from '@/ai/flows/rank-thumbnails';
+import {
+  rankThumbnails,
+  type RankThumbnailsOutput,
+} from '@/ai/flows/rank-thumbnails';
 
 export async function rankThumbnailsAction(
   thumbnailDataUris: string[]
@@ -9,13 +12,17 @@ export async function rankThumbnailsAction(
   if (!thumbnailDataUris || thumbnailDataUris.length === 0) {
     throw new Error('No thumbnails provided.');
   }
-  
+
   try {
-    const result = await rankThumbnails({ thumbnailDataUris });
+    const result = await rankThumbnails({thumbnailDataUris});
+    // Ensure the output is sorted by predictedCtr descending, as a safeguard.
+    result.rankedThumbnails.sort((a, b) => b.predictedCtr - a.predictedCtr);
     return result;
   } catch (error) {
-    console.error("Error in rankThumbnailsAction:", error);
+    console.error('Error in rankThumbnailsAction:', error);
     // Provide a more user-friendly error message
-    throw new Error("The AI failed to process the thumbnails. Please try again with different images.");
+    throw new Error(
+      'The AI failed to process the thumbnails. Please try again with different images.'
+    );
   }
 }

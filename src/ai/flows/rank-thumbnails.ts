@@ -17,7 +17,7 @@ const RankThumbnailsInputSchema = z.object({
   thumbnailDataUris: z
     .array(z.string())
     .describe(
-      'An array of YouTube thumbnails, as data URIs that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.' 
+      'An array of YouTube thumbnails, as data URIs that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
     ),
 });
 
@@ -25,17 +25,27 @@ export type RankThumbnailsInput = z.infer<typeof RankThumbnailsInputSchema>;
 
 const RankedThumbnailSchema = z.object({
   dataUri: z.string().describe('The thumbnail image data URI.'),
-  predictedCtr: z.number().describe('The predicted click-through rate for the thumbnail.'),
-  explanation: z.string().describe('The AI explanation for the predicted CTR.'),
+  predictedCtr: z
+    .number()
+    .describe('The predicted click-through rate (CTR) for the thumbnail, from 0 to 1.'),
+  explanation: z
+    .string()
+    .describe('The AI explanation for the predicted CTR and ranking.'),
 });
 
 const RankThumbnailsOutputSchema = z.object({
-  rankedThumbnails: z.array(RankedThumbnailSchema).describe('The thumbnails ranked by predicted click-through rate.'),
+  rankedThumbnails: z
+    .array(RankedThumbnailSchema)
+    .describe(
+      'The thumbnails ranked by predicted click-through rate, from best to worst.'
+    ),
 });
 
 export type RankThumbnailsOutput = z.infer<typeof RankThumbnailsOutputSchema>;
 
-export async function rankThumbnails(input: RankThumbnailsInput): Promise<RankThumbnailsOutput> {
+export async function rankThumbnails(
+  input: RankThumbnailsInput
+): Promise<RankThumbnailsOutput> {
   return rankThumbnailsFlow(input);
 }
 
@@ -43,15 +53,18 @@ const prompt = ai.definePrompt({
   name: 'rankThumbnailsPrompt',
   input: {schema: RankThumbnailsInputSchema},
   output: {schema: RankThumbnailsOutputSchema},
-  prompt: `You are an expert in YouTube thumbnail design and click-through rate (CTR) optimization.
+  prompt: `You are an expert YouTube growth hacker specializing in viral content and click-through rate (CTR) optimization.
 
-You are provided with multiple thumbnails for a YouTube video. Analyze each thumbnail and rank them based on your prediction of their click-through rate (CTR). Provide a brief explanation for each thumbnail's ranking.
+You have been given a set of YouTube thumbnails for the same video. Your task is to analyze each thumbnail and rank them from best to worst based on their predicted click-through rate.
 
-Output the thumbnails in a JSON format, ranked from highest to lowest predicted CTR.
+For each thumbnail, you must:
+1.  Provide a predicted CTR as a score from 0.0 to 1.0.
+2.  Provide a concise, expert explanation for why you've given it that score. Be specific. Mention visual elements, emotional triggers, clarity, and overall design.
+3.  The final output must be a JSON object with a 'rankedThumbnails' key, containing an array of thumbnail objects sorted from the highest predicted CTR to the lowest.
 
-Thumbnails:
+Here are the thumbnails to analyze:
 {{#each thumbnailDataUris}}
-  {{@index}}: {{media url=this}}
+- Thumbnail {{@index}}: {{media url=this}}
 {{/each}}`,
 });
 
