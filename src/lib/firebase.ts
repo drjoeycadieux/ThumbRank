@@ -25,9 +25,6 @@ const missingEnvVars = requiredEnvVars.filter(key => !process.env[key]);
 let app, auth;
 
 if (missingEnvVars.length > 0) {
-  console.error(`Missing Firebase environment variables: ${missingEnvVars.join(', ')}. Firebase will not be initialized.`);
-  // In a real app, you might want to handle this more gracefully,
-  // but for now, we'll just prevent initialization.
   // We'll create dummy objects to avoid breaking the app structure.
   app = null;
   auth = null;
