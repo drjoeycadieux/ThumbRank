@@ -19,7 +19,7 @@ const plans = [
   },
   {
     name: Plan.Pro,
-    price: '$29',
+    price: '$19',
     priceDetails: '/month',
     features: [
       'Unlimited thumbnail ranking',
